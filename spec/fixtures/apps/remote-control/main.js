@@ -18,9 +18,12 @@ app.whenReady().then(() => {
     req.on('data', chunk => { chunks.push(chunk); });
     req.on('end', () => {
       const js = Buffer.concat(chunks).toString('utf8');
+      const vm = require('node:vm');
       (async () => {
         try {
-          const result = await Promise.resolve(eval(js)); // eslint-disable-line no-eval
+          const script = new vm.Script(js);
+          const context = vm.createContext({});
+          const result = await Promise.resolve(script.runInContext(context));
           res.end(v8.serialize({ result }));
         } catch (e) {
           res.end(v8.serialize({ error: e.stack }));
