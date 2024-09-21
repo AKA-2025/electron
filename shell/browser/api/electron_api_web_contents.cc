@@ -67,6 +67,7 @@
 #include "content/public/common/result_codes.h"
 #include "content/public/common/webplugininfo.h"
 #include "electron/buildflags/buildflags.h"
+#include "electron/mas.h"
 #include "electron/shell/common/api/api.mojom.h"
 #include "gin/arguments.h"
 #include "gin/data_object_builder.h"
@@ -126,6 +127,7 @@
 #include "shell/common/gin_converters/value_converter.h"
 #include "shell/common/gin_helper/dictionary.h"
 #include "shell/common/gin_helper/error_thrower.h"
+#include "shell/common/gin_helper/locker.h"
 #include "shell/common/gin_helper/object_template_builder.h"
 #include "shell/common/gin_helper/promise.h"
 #include "shell/common/language_util.h"
@@ -688,6 +690,7 @@ WebContents::Type GetTypeFromViewType(extensions::mojom::ViewType view_type) {
     case extensions::mojom::ViewType::kOffscreenDocument:
     case extensions::mojom::ViewType::kExtensionSidePanel:
     case extensions::mojom::ViewType::kInvalid:
+    case extensions::mojom::ViewType::kDeveloperTools:
       return WebContents::Type::kRemote;
   }
 }
@@ -1153,7 +1156,7 @@ content::WebContents* WebContents::CreateCustomWebContents(
   return nullptr;
 }
 
-void WebContents::AddNewContents(
+content::WebContents* WebContents::AddNewContents(
     content::WebContents* source,
     std::unique_ptr<content::WebContents> new_contents,
     const GURL& target_url,
@@ -1186,6 +1189,8 @@ void WebContents::AddNewContents(
            tracker->raw_features, tracker->body)) {
     api_web_contents->Destroy();
   }
+
+  return nullptr;
 }
 
 content::WebContents* WebContents::OpenURLFromTab(
