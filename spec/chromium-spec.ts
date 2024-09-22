@@ -28,7 +28,11 @@ describe('reporting api', () => {
     // The Reporting API only works on https with valid certs. To dodge having
     // to set up a trusted certificate, hack the validator.
     session.defaultSession.setCertificateVerifyProc((req, cb) => {
-      cb(0);
+      if (req.errorCode === 0) {
+        cb(0);
+      } else {
+        cb(-3); // -3 means the certificate is not trusted
+      }
     });
 
     const options = {
@@ -39,7 +43,7 @@ describe('reporting api', () => {
         fs.readFileSync(path.join(certPath, 'intermediateCA.pem'))
       ],
       requestCert: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: true
     };
 
     const server = https.createServer(options, (req, res) => {
