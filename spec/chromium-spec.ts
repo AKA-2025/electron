@@ -713,7 +713,7 @@ describe('chromium features', () => {
     it('should register for intercepted file scheme', (done) => {
       const customSession = session.fromPartition('intercept-file');
       customSession.protocol.interceptBufferProtocol('file', (request, callback) => {
-        let file = url.parse(request.url).pathname!;
+        let file = new URL(request.url).pathname!;
         if (file[0] === '/' && process.platform === 'win32') file = file.slice(1);
 
         const content = fs.readFileSync(path.normalize(file));
@@ -754,7 +754,7 @@ describe('chromium features', () => {
     it('should register for custom scheme', (done) => {
       const customSession = session.fromPartition('custom-scheme');
       customSession.protocol.registerFileProtocol(serviceWorkerScheme, (request, callback) => {
-        let file = url.parse(request.url).pathname!;
+        let file = new URL(request.url).pathname!;
         if (file[0] === '/' && process.platform === 'win32') file = file.slice(1);
 
         callback({ path: path.normalize(file) } as any);
@@ -2008,7 +2008,7 @@ describe('chromium features', () => {
       let contents: WebContents;
       before(() => {
         protocol.registerFileProtocol(protocolName, (request, callback) => {
-          const parsedUrl = url.parse(request.url);
+          const parsedUrl = new URL(request.url);
           let filename;
           switch (parsedUrl.pathname) {
             case '/localStorage' : filename = 'local_storage.html'; break;
@@ -2463,7 +2463,7 @@ describe('chromium features', () => {
     it('has user agent', async () => {
       const server = http.createServer();
       const { port } = await listen(server);
-      const wss = new ws.Server({ server: server });
+      const wss = new ws.Server({ server });
       const finished = new Promise<string | undefined>((resolve, reject) => {
         wss.on('error', reject);
         wss.on('connection', (ws, upgradeReq) => {
@@ -3448,6 +3448,7 @@ describe('navigator.hid', () => {
             haveDevices = true;
             return true;
           }
+          return false;
         });
         if (foundDevice) {
           callback(foundDevice.deviceId);
@@ -3495,6 +3496,7 @@ describe('navigator.hid', () => {
               return true;
             }
           }
+          return false;
         });
       }
       callback();
@@ -3674,6 +3676,7 @@ describe('navigator.usb', () => {
             haveDevices = true;
             return true;
           }
+          return false;
         });
         if (foundDevice) {
           callback(foundDevice.deviceId);

@@ -1207,6 +1207,22 @@ describe('webContents module', () => {
         expect(currentFocused).to.be.true();
         expect(childFocused).to.be.false();
       });
+
+      it('does not crash when focusing a WebView webContents', async () => {
+        const w = new BrowserWindow({
+          show: false,
+          webPreferences: {
+            nodeIntegration: true,
+            webviewTag: true
+          }
+        });
+
+        w.show();
+        await w.loadURL('data:text/html,<webview src="data:text/html,hi"></webview>');
+
+        const wc = webContents.getAllWebContents().find((wc) => wc.getType() === 'webview')!;
+        expect(() => wc.focus()).to.not.throw();
+      });
     });
 
     const moveFocusToDevTools = async (win: BrowserWindow) => {
@@ -2788,15 +2804,17 @@ describe('webContents module', () => {
       expect({
         width: w.getBounds().width,
         height: w.getBounds().height
-      }).to.deep.equal(process.platform === 'win32' ? {
-        // The width is reported as being larger on Windows? I'm not sure why
-        // this is.
-        width: 136,
-        height: 100
-      } : {
-        width: 100,
-        height: 100
-      });
+      }).to.deep.equal(process.platform === 'win32'
+        ? {
+            // The width is reported as being larger on Windows? I'm not sure why
+            // this is.
+            width: 136,
+            height: 100
+          }
+        : {
+            width: 100,
+            height: 100
+          });
     });
 
     it('does not change window bounds if cancelled', async () => {
